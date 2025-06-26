@@ -29,26 +29,85 @@ void shell() {
 }
 
 // TODO: 4. Implement printCWD function
-void printCWD(byte cwd) {}
+void printCWD(byte cwd) {
+  struct node_fs node_fs_buf;
+  char path[64][MAX_FILENAME];
+  int depth = 0, i;
+
+  readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
+  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER);
+
+  if (cwd == FS_NODE_P_ROOT) {
+    printString("/");
+    return;
+  }
+
+  while (cwd != FS_NODE_P_ROOT) {
+    strcpy(path[depth++], node_fs_buf.nodes[cwd].node_name);
+    cwd = node_fs_buf.nodes[cwd].parent_index;
+  }
+
+  printString("/");
+  for (i = depth - 1; i >= 0; i--) {
+    printString(path[i]);
+    if (i > 0) printString("/");
+  }
+}
 
 // TODO: 5. Implement parseCommand function
-void parseCommand(char* buf, char* cmd, char arg[2][64]) {}
+void parseCommand(char* buf, char* cmd, char arg[2][64]) {
+  int i = 0, j = 0, k = 0;
+
+  for (i = 0; i < 64; i++) {
+    cmd[i] = 0;
+    arg[0][i] = 0;
+    arg[1][i] = 0;
+  }
+  
+  i = 0;
+
+  while (buf[i] == ' ') i++;
+
+  while (buf[i] != ' ' && buf[i] != '\0') cmd[j++] = buf[i++];
+  cmd[j] = '\0';
+
+  for (k = 0; k < 2; k++) {
+    while (buf[i] == ' ') i++;
+
+    j = 0;
+    while (buf[i] != ' ' && buf[i] != '\0') arg[k][j++] = buf[i++];
+    
+    arg[k][j] = '\0';
+  }
+}
 
 // TODO: 6. Implement cd function
-void cd(byte* cwd, char* dirname) {}
+void cd(byte* cwd, char* dirname) {
+
+}
 
 // TODO: 7. Implement ls function
-void ls(byte cwd, char* dirname) {}
+void ls(byte cwd, char* dirname) {
+
+}
 
 // TODO: 8. Implement mv function
-void mv(byte cwd, char* src, char* dst) {}
+void mv(byte cwd, char* src, char* dst) {
+
+}
 
 // TODO: 9. Implement cp function
-void cp(byte cwd, char* src, char* dst) {}
+void cp(byte cwd, char* src, char* dst) {
+
+}
 
 // TODO: 10. Implement cat function
-void cat(byte cwd, char* filename) {}
+void cat(byte cwd, char* filename) {
+
+}
 
 // TODO: 11. Implement mkdir function
-void mkdir(byte cwd, char* dirname) {}
+void mkdir(byte cwd, char* dirname) {
+
+}
 
