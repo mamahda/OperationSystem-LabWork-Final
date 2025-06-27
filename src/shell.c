@@ -212,10 +212,9 @@ void mv(byte cwd, char* src, char* dst) {
 // TODO: 9. Implement cp function
 void cp(byte cwd, char* src, char* dst) {
   struct node_fs node_fs_buf;
-  struct file_metadata src_metadata, dst_metadata;
+  struct file_metadata metadata;
   enum fs_return status;
   int i;
-  bool found = false;
   byte target_dir;
   char output_name[MAX_FILENAME];
 
@@ -226,20 +225,20 @@ void cp(byte cwd, char* src, char* dst) {
     if (strcmp(node_fs_buf.nodes[i].node_name, src) &&
         node_fs_buf.nodes[i].parent_index == cwd &&
         node_fs_buf.nodes[i].data_index != FS_NODE_D_DIR) {
-      found = true;
-      src_metadata.parent_index = cwd;
-      strcpy(src_metadata.node_name, src);
-      fsRead(&src_metadata, &status);
-      if (status != FS_SUCCESS) {
-        printString("cp: error reading source file\n");
-        return;
-      }
       break;
     }
   }
 
-  if (!found) {
+  if (i == FS_MAX_NODE) {
     printString("cp: source file not found\n");
+    return;
+  }
+
+  metadata.parent_index = cwd;
+  strncpy(metadata.node_name, src, MAX_FILENAME);
+  fsRead(&metadata, &status);
+  if (status != FS_R_SUCCESS) {
+    printString("cp: error reading source file\n");
     return;
   }
 
@@ -249,22 +248,20 @@ void cp(byte cwd, char* src, char* dst) {
   }
 
   for (i = 0; i < FS_MAX_NODE; i++) {
-    if (strcmp(node_fs_buf.nodes[i].node_name, output_name) &&
-        node_fs_buf.nodes[i].parent_index == target_dir) {
+    if (strcmp(node_fs_buf.nodes[i].node_name, output_name) && node_fs_buf.nodes[i].parent_index == target_dir) {
       printString("cp: file with the same name already exists\n");
       return;
     }
   }
 
-  dst_metadata.parent_index = target_dir;
-  strcpy(dst_metadata.node_name, output_name);
-  dst_metadata.filesize = src_metadata.filesize;
-  memcpy(dst_metadata.buffer, src_metadata.buffer, src_metadata.filesize);
+  metadata.parent_index = target_dir;
+  strcpy(metadata.node_name, output_name);
+  fsWrite(&metadata, &status);
 
-  fsWrite(&dst_metadata, &status);
-  if (status != FS_SUCCESS) printString("cp: error writing copied file\n");
+  if (status != FS_W_SUCCESS) printString("cp: error writing copied file\n");
   else printString("cp: file copied successfully\n");
 }
+
 
 // TODO: 10. Implement cat function
 void cat(byte cwd, char* filename) {
