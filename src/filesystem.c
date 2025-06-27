@@ -33,9 +33,8 @@ void fsRead(struct file_metadata* metadata, enum fs_return* status) {
         found = true;
 
         if (node_fs_buf.nodes[i].data_index != FS_NODE_D_DIR) {
-
-
           metadata->filesize = 0;
+          
           for (j = 0; j < FS_MAX_SECTOR; ++j) {
             sector = data_fs_buf.datas[node_fs_buf.nodes[i].data_index].sectors[j];
             if (sector == 0x00) break;

@@ -235,10 +235,10 @@ void cp(byte cwd, char* src, char* dst) {
   }
 
   metadata.parent_index = cwd;
-  strcpy(metadata.node_name, src);
+  strncpy(metadata.node_name, src, MAX_FILENAME);
   fsRead(&metadata, &status);
-  if (status != FS_SUCCESS) {
-    printString("\ncp: error reading source file\n");
+  if (status != FS_R_SUCCESS) {
+    printString("cp: error reading source file\n");
     return;
   }
 
@@ -258,7 +258,7 @@ void cp(byte cwd, char* src, char* dst) {
   strcpy(metadata.node_name, output_name);
   fsWrite(&metadata, &status);
 
-  if (status != FS_SUCCESS) printString("cp: error writing copied file\n");
+  if (status != FS_W_SUCCESS) printString("cp: error writing copied file\n");
   else printString("cp: file copied successfully\n");
 }
 
