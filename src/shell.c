@@ -3,8 +3,6 @@
 #include "std_lib.h"
 #include "filesystem.h"
 
-// int parsePath(char* path, char dirs[][MAX_FILENAME]);
-
 void shell() {
   char buf[64];
   char cmd[64];
@@ -212,108 +210,61 @@ void mv(byte cwd, char* src, char* dst) {
 }
 
 // TODO: 9. Implement cp function
-// TODO: 9. Implement cp function
 void cp(byte cwd, char* src, char* dst) {
-    struct node_fs node_fs_buf;
-    struct file_metadata src_metadata;
-    struct file_metadata dst_metadata;
-    enum fs_return status;
+  struct node_fs node_fs_buf;
+  struct file_metadata src_metadata, dst_metadata;
+  enum fs_return status;
+  int i;
+  bool found = false;
+  byte target_dir;
+  char output_name[MAX_FILENAME];
 
-    int i;
-    byte target_dir = cwd;
-    char output_name[MAX_FILENAME];
-    char dir_name[MAX_FILENAME];
-    int outnamestart = 0;
-    int slashidx;
+  readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
+  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
 
-    readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
-    readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
-
-    for (i = 0; i < FS_MAX_NODE; i++) {
-        if (node_fs_buf.nodes[i].parent_index == cwd &&
-            strcmp(node_fs_buf.nodes[i].node_name, src) == 0 &&
-            node_fs_buf.nodes[i].data_index != FS_NODE_D_DIR) {
-            src_metadata.parent_index = cwd;
-            strcpy(src_metadata.node_name, src);
-            fsRead(&src_metadata, &status);
-            if (status != FS_SUCCESS) {
-                printString("Error reading source file\n");
-                return;
-            }
-            break;
-        }
-    }
-
-    if (i == FS_MAX_NODE) {
-        printString("Source file not found\n");
+  for (i = 0; i < FS_MAX_NODE; i++) {
+    if (strcmp(node_fs_buf.nodes[i].node_name, src) &&
+        node_fs_buf.nodes[i].parent_index == cwd &&
+        node_fs_buf.nodes[i].data_index != FS_NODE_D_DIR) {
+      found = true;
+      src_metadata.parent_index = cwd;
+      strcpy(src_metadata.node_name, src);
+      fsRead(&src_metadata, &status);
+      if (status != FS_SUCCESS) {
+        printString("cp: error reading source file\n");
         return;
+      }
+      break;
     }
+  }
 
-    if (dst[0] == '/') {
-        target_dir = FS_NODE_P_ROOT;
-        outnamestart = 1;
-    } else if (dst[0] == '.' && dst[1] == '.') {
-        target_dir = node_fs_buf.nodes[cwd].parent_index;
-        outnamestart = 3;
-    } else {
-        slashidx = -1;
-        for (i = 0; dst[i] != '\0'; i++) {
-            if (dst[i] == '/') {
-                slashidx = i;
-            }
-        }
+  if (!found) {
+    printString("cp: source file not found\n");
+    return;
+  }
 
-        if (slashidx != -1) {
-            for (i = 0; i < slashidx; i++) {
-                dir_name[i] = dst[i];
-            }
-            dir_name[slashidx] = '\0';
+  if (!resolvePathAndName(&node_fs_buf, cwd, dst, &target_dir, output_name)) {
+    printString("cp: destination path not found\n");
+    return;
+  }
 
-            for (i = 0; i < FS_MAX_NODE; i++) {
-                if (node_fs_buf.nodes[i].parent_index == cwd &&
-                    strcmp(node_fs_buf.nodes[i].node_name, dir_name) == 1) {
-                    target_dir = i;
-                    break;
-                }
-            }
-
-            if (i == FS_MAX_NODE) {
-                printString("Target directory not found\n");
-                return;
-            }
-
-            outnamestart = slashidx + 1;
-        } else {
-            outnamestart = 0;
-        }
+  for (i = 0; i < FS_MAX_NODE; i++) {
+    if (strcmp(node_fs_buf.nodes[i].node_name, output_name) &&
+        node_fs_buf.nodes[i].parent_index == target_dir) {
+      printString("cp: file with the same name already exists\n");
+      return;
     }
+  }
 
-    for (i = 0; dst[outnamestart + i] != '\0' && i < MAX_FILENAME - 1; i++) {
-        output_name[i] = dst[outnamestart + i];
-    }
-    output_name[i] = '\0';
+  dst_metadata.parent_index = target_dir;
+  strcpy(dst_metadata.node_name, output_name);
+  dst_metadata.filesize = src_metadata.filesize;
+  memcpy(dst_metadata.buffer, src_metadata.buffer, src_metadata.filesize);
 
-    for (i = 0; i < FS_MAX_NODE; i++) {
-        if (node_fs_buf.nodes[i].parent_index == target_dir &&
-            strcmp(node_fs_buf.nodes[i].node_name, output_name) == 1) {
-            printString("File with the same name already exists\n");
-            return;
-        }
-    }
-
-    dst_metadata.parent_index = target_dir;
-    strcpy(dst_metadata.node_name, output_name);
-    dst_metadata.filesize = src_metadata.filesize;
-    memcpy(dst_metadata.buffer, src_metadata.buffer, src_metadata.filesize);
-
-    fsWrite(&dst_metadata, &status);
-    if (status != FS_SUCCESS) {
-        printString("Error writing copied file\n");
-    } else {
-        printString("File copied successfully\n");
-    }
+  fsWrite(&dst_metadata, &status);
+  if (status != FS_SUCCESS) printString("cp: error writing copied file\n");
+  else printString("cp: file copied successfully\n");
 }
-
 
 // TODO: 10. Implement cat function
 void cat(byte cwd, char* filename) {
