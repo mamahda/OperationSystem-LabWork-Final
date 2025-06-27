@@ -35,7 +35,7 @@ void printCWD(byte cwd) {
   int depth = 0, i;
 
   readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
-  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER);
+  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
 
   if (cwd == FS_NODE_P_ROOT) {
     printString("/");
@@ -43,7 +43,7 @@ void printCWD(byte cwd) {
   }
 
   while (cwd != FS_NODE_P_ROOT) {
-    strcpy(path[depth++], node_fs_buf.nodes[cwd].node_name);
+    strncpy(path[depth++], node_fs_buf.nodes[cwd].node_name, MAX_FILENAME);
     cwd = node_fs_buf.nodes[cwd].parent_index;
   }
 
@@ -58,14 +58,10 @@ void printCWD(byte cwd) {
 void parseCommand(char* buf, char* cmd, char arg[2][64]) {
   int i = 0, j = 0, k = 0;
 
-  for (i = 0; i < 64; i++) {
-    cmd[i] = 0;
-    arg[0][i] = 0;
-    arg[1][i] = 0;
-  }
+  memset(cmd, 0, 64);
+  memset(arg[0], 0, 64);
+  memset(arg[1], 0, 64);
   
-  i = 0;
-
   while (buf[i] == ' ') i++;
 
   while (buf[i] != ' ' && buf[i] != '\0') cmd[j++] = buf[i++];
@@ -103,7 +99,32 @@ void cp(byte cwd, char* src, char* dst) {
 
 // TODO: 10. Implement cat function
 void cat(byte cwd, char* filename) {
+  struct file_metadata metadata;
+  enum fs_return status;
+  char test1[3];
+  
+  metadata.parent_index = cwd;
+  strncpy(metadata.node_name, filename, MAX_FILENAME);
+  memset(metadata.buffer, 0, FS_MAX_SECTOR * SECTOR_SIZE);
+  metadata.filesize = 0;
 
+  fsRead(&metadata, &status);
+
+  // byteToHexString(metadata.parent_index, test1);
+  // printString(test1);
+  // printString("\n name : ");
+  // printString(metadata.node_name);
+  // printString("\n status : ");
+  // printString(status);
+  // printString("\n");
+  if (status == FS_R_SUCCESS) {
+    printString(metadata.buffer);
+    printString("\n");
+  } else if (status == FS_R_TYPE_IS_DIRECTORY) {
+    printString("cat: "); printString(filename); printString(": Is a directory\n");
+  } else if (status == FS_R_NODE_NOT_FOUND) {
+    printString("cat: "); printString(filename); printString(": No such file or directory\n");
+  }
 }
 
 // TODO: 11. Implement mkdir function

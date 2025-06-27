@@ -1,4 +1,5 @@
 prepare:
+	mkdir -p bin
 	dd if=/dev/zero of=bin/floppy.img bs=512 count=2880
 
 asm:
@@ -24,6 +25,9 @@ run:
 #	bochs.exe
 # linux:
 	bochs -f bochsrc.txt
+
+clean:
+	rm -r bin/*
 
 generate:
 	gcc test/generate.c test/testlib -o bin/generate
