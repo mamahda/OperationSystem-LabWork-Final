@@ -11,6 +11,9 @@ typedef char bool;
 #endif
 #endif
 
+#ifndef NULL
+#define NULL 0
+#endif
 
 #define SECTOR_SIZE 512
 

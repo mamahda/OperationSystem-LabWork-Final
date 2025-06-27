@@ -3,7 +3,7 @@
 bits 16
 
 KERNEL_SEGMENT equ 0x1000 ; kernel will be loaded at 0x1000:0x0000
-KERNEL_SECTORS equ 15     ; kernel will be loaded in 15 sectors maximum
+KERNEL_SECTORS equ 64     ; kernel will be loaded in 64 sectors maximum
 KERNEL_START   equ 1      ; kernel will be loaded in sector 1
 
 ; bootloader code
