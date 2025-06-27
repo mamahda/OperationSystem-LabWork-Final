@@ -12,9 +12,10 @@ bool strcmp(char* str1, char* str2);
 void strcpy(char* dst, char* src);
 void clear(byte* buf, unsigned int size);
 
-/**
- * TODO: Add your general helper function here
- * ...
- */
+// TODO: Add your general helper function here
+void memset(byte *dst, int val, unsigned int size);
+void strncpy(char *str1, char *str2, unsigned int size);
+void byteToHexString(unsigned char byte, char* output);
+//
 
 #endif // __STD_LIB_H__

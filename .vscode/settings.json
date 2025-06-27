@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "std_lib.h": "c",
+        "filesystem.h": "c",
+        "kernel.h": "c",
+        "std_type.h": "c"
+    }
+}

@@ -25,7 +25,7 @@ void fsRead(struct file_metadata* metadata, enum fs_return* status) {
 
   readSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
   readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
-  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER);
+  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
 
   // add your code here
   for (i = 0; i < FS_MAX_NODE; ++i) {
@@ -70,7 +70,7 @@ void fsWrite(struct file_metadata* metadata, enum fs_return* status) {
 
   readSector(&map_fs_buf, FS_MAP_SECTOR_NUMBER);
   readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
-  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER);
+  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
   readSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
 
   for (i = 0; i < FS_MAX_NODE; ++i) {
@@ -95,10 +95,10 @@ void fsWrite(struct file_metadata* metadata, enum fs_return* status) {
   if (metadata->filesize == 0) {
     node_fs_buf.nodes[n_idx].parent_index = metadata->parent_index;
     node_fs_buf.nodes[n_idx].data_index = FS_NODE_D_DIR;
-    strcpy(node_fs_buf.nodes[n_idx].node_name, metadata->node_name);
+    strncpy(node_fs_buf.nodes[n_idx].node_name, metadata->node_name, MAX_FILENAME);
 
     writeSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
-    writeSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER);
+    writeSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
 
     *status = FS_W_SUCCESS;
     return;
@@ -128,7 +128,7 @@ void fsWrite(struct file_metadata* metadata, enum fs_return* status) {
 
   node_fs_buf.nodes[n_idx].parent_index = metadata->parent_index;
   node_fs_buf.nodes[n_idx].data_index = d_idx;
-  strcpy(node_fs_buf.nodes[n_idx].node_name, metadata->node_name);
+  strncpy(node_fs_buf.nodes[n_idx].node_name, metadata->node_name, MAX_FILENAME);
 
   for (i = 0, j = 0; i < SECTOR_SIZE && j < blocks_rq; ++i) {
     if (!map_fs_buf.is_used[i]) {
@@ -144,7 +144,7 @@ void fsWrite(struct file_metadata* metadata, enum fs_return* status) {
 
   writeSector(&map_fs_buf, FS_MAP_SECTOR_NUMBER);
   writeSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
-  writeSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER);
+  writeSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
   writeSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
 
   *status = FS_W_SUCCESS;

@@ -47,3 +47,25 @@ void clear(byte* buf, unsigned int size) {
   unsigned int i;
   for (i = 0; i < size; i++) buf[i] = 0;
 }
+
+void memset(byte *dst, int val, unsigned int size) {
+  unsigned int i;
+  for (i = 0; i < size; ++i) dst[i] = val;
+}
+
+void strncpy(char *str1, char *str2, unsigned int size) {
+  unsigned int i;
+  for (i = 0 ; i < size; ++i) {
+    str1[i] = str2[i]; 
+    if (str1[i] == '\0' || str2[i] == '\0') break;
+  }
+}
+
+// buat debugging
+void byteToHexString(byte bt, char *output) {
+  char *hexDigits = "0123456789ABCDEF";
+
+  output[0] = hexDigits[(bt >> 4) & 0x0F];
+  output[1] = hexDigits[bt & 0x0F];
+  output[2] = '\0';
+}
