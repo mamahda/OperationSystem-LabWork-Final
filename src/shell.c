@@ -255,7 +255,7 @@ void cp(byte cwd, char* src, char* dst) {
   }
 
   metadata.parent_index = target_dir;
-  strcpy(metadata.node_name, output_name);
+  strncpy(metadata.node_name, output_name, MAX_FILENAME);
   fsWrite(&metadata, &status);
 
   if (status != FS_W_SUCCESS) printString("cp: error writing copied file\n");
