@@ -79,7 +79,7 @@ void fsWrite(struct file_metadata* metadata, enum fs_return* status) {
     }
   }
 
-  for (i = 0; i < FS_MAX_SECTOR; ++i) {
+  for (i = 0; i < FS_MAX_NODE; ++i) {
     if (node_fs_buf.nodes[i].node_name[0] == '\0') {
       n_idx = i;
       break;
